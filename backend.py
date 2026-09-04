@@ -1,16 +1,16 @@
 import sqlite3
-import app
 
 connection = sqlite3.connect("Applications.db")
 cursor = connection.cursor()
 
-cursor.execute("CREATE TABLE IF NOT EXISTS applications(application_number, date, cv, coverletter)")
+cursor.execute("CREATE TABLE IF NOT EXISTS applications(id INTEGER PRIMARY KEY AUTOINCREMENT, company_name TEXT, date TEXT, cv TEXT)")
+connection.commit()
 
 def GetApplications():
-    cursor.execute("SELECT * FROM applications")
-    all_applications = cursor.fetchall()
-    return all_applications
+    cursor.execute("SELECT id, company_name, date, cv FROM applications")
+    return cursor.fetchall()
 
-
-def SaveCV(FilePath):
-    print(FilePath)
+def SaveApplication(company_name, date, cv):
+    cursor.execute("INSERT INTO applications(company_name, date, cv) VALUES(?, ?, ?)", (company_name, date, cv))
+    connection.commit()
+    return cursor.lastrowid
