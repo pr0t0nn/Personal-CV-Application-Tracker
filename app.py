@@ -35,9 +35,10 @@ class ApplicationsPage(BasePage):
         for record in self.controller.applications_data:
             company_name = record[1]
             application_date = record[2]
+            status = record[4]
             ApplicationButton = ctk.CTkButton(
                 self.ApplicationContainer,
-                text=f"{company_name}    {application_date}",
+                text=f"{company_name}    {application_date}    {status}",
                 height=40,
                 command=lambda application=record: self.controller.show_page(ApplicationPage, application=application)
             )
@@ -75,8 +76,21 @@ class ApplicationPage(BasePage):
         self.CVLabel = ctk.CTkLabel(self, text=self.cv_path if self.cv_path else "No CV Selected")
         self.CVLabel.pack(pady=5)
 
-        self.SaveButton = ctk.CTkButton(self, text="Save Application", command=self.SaveApplication)
-        self.SaveButton.pack(pady=10)
+        if application:
+            self.StatusLabel = ctk.CTkLabel(self, text=f"Status: {application[4]}", font=("Arial", 14, "bold"))
+            self.StatusLabel.pack(pady=10)
+
+            self.StatusButtons = ctk.CTkFrame(self, fg_color="transparent")
+            self.StatusButtons.pack(pady=5)
+
+            self.PassedButton = ctk.CTkButton(self.StatusButtons, text="Passed", fg_color="green", hover_color="darkgreen", command=lambda: self.SetStatus("Passed"))
+            self.PassedButton.pack(side="left", padx=10)
+
+            self.FailedButton = ctk.CTkButton(self.StatusButtons, text="Failed", fg_color="red", hover_color="darkred", command=lambda: self.SetStatus("Failed"))
+            self.FailedButton.pack(side="left", padx=10)
+        else:
+            self.SaveButton = ctk.CTkButton(self, text="Save Application", command=self.SaveApplication)
+            self.SaveButton.pack(pady=10)
 
         self.BackButton = ctk.CTkButton(self, text="Back to List", command=lambda: controller.show_page(ApplicationsPage))
         self.BackButton.pack(pady=10)
@@ -102,6 +116,11 @@ class ApplicationPage(BasePage):
         backend.SaveApplication(company_name, application_date, self.cv_path)
         self.controller.applications_data = backend.GetApplications()
         self.controller.show_page(ApplicationsPage)
+
+    def SetStatus(self, status):
+        backend.UpdateStatus(self.application[0], status)
+        self.controller.applications_data = backend.GetApplications()
+        self.StatusLabel.configure(text=f"Status: {status}")
 
 class AppController(ctk.CTk):
     def __init__(self):
